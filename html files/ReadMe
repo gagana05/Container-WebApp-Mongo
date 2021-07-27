@@ -1,0 +1,101 @@
+Created VM on azure
+
+installed docker
+
+	Step 1: Update Software Repositories - update the local database of software to make sure you’ve got access to the latest revisions.
+
+	sudo apt-get update
+
+
+	Step 2: Uninstall Old Versions of Docker
+	sudo apt-get remove docker docker-engine docker.io
+
+	Step 3: Install Docker on Ubuntu 18.04
+	sudo apt install docker.io
+
+	Step 4: Start and Automate Docker
+	 Docker service needs to be setup to run at startup. To do so, type in each command followed by enter:
+
+	sudo systemctl start docker
+	sudo systemctl enable docker
+
+	Step 5 (Optional): Check Docker Version
+	docker --version
+
+Installing a container with apache-php
+	$ docker run -tid \
+        -p 80:80 \
+        --name apache_server \
+        php:7-apache
+
+	-EDIT INDEX.php
+
+Installing a container with mongoDB
+	
+	to download our image :
+	 we can obtain the MongoDB image from the Docker Hub container registry.
+	
+	docker pull mongo
+	docker pull mongo:4.0.4
+
+	Deploying an Instance of MongoDB as a Container
+	docker run -d -p 27017-27019:27017-27019 --name mongodb1 mongo:4.0.4
+
+	Interacting with the MongoDB Docker Container with Basic Shell Operations
+	docker exec -it mongodb1 bash
+
+	//To use use database
+	mongo
+	use ImageDB
+	add and retrieve
+
+Installing MongoDB driver in PHP
+
+	pecl install mongodb
+	
+	add the following line to your php.ini file
+	extension=mongodb.so
+
+	preferred method of installing the PHP library is with Composer by running the following from your project root:
+	composer require mongodb/mongodb
+
+	TO run prev statement
+	-install : wget , composer , git
+
+	To connect to mongoDB
+		<?php
+
+	$manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+
+	$bulk = new MongoDB\Driver\BulkWrite;
+	$bulk->insert(['x' => 1]);
+	$bulk->insert(['x' => 2]);
+	$bulk->insert(['x' => 3]);
+	$manager->executeBulkWrite('db.collection', $bulk);
+
+	$filter = ['x' => ['$gt' => 1]];
+	$options = [
+	    'projection' => ['_id' => 0],
+	    'sort' => ['x' => -1],
+	];
+
+	$query = new MongoDB\Driver\Query($filter, $options);
+	$cursor = $manager->executeQuery('db.collection', $query);
+
+	foreach ($cursor as $document) {
+	    var_dump($document);
+	}
+
+	?>
+
+SSH into both containers
+
+-Mongo
+	Create ssh port on container(We deleted present container and did this)
+	docker run -it -v mongodata:/data/db -p 27017:27017 -p 23:22 --name mongodb -d mongo
+
+	TO install sshd
+	sudo apt-get
+
+	apt-get install openssh-server
+	
