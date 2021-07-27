@@ -1,101 +1,65 @@
-Created VM on azure
+OBJECTIVE:
+Deploy a web application with a NoSQL (MongoDB) backend on two different
+containers, to ensure proper communication between them using suitable mechanisms.
 
-installed docker
+PROCEDURE AND CONFIGURATION:
+• Created a new resource group that is used to hold all
+resources for the assignment.
+• Created a new virtual network (Virtual-Network-1) to host the VMs required, the IP
+range for this Virtual Network is 10.0.0.0/16. Also, a default subnet was created.
+• Create a new a Virtual Machine (VM) and attach it to the above subnet. The
+following is the VM configuration: (not necessary to follow the same).
+	o OS image: Ubuntu Server 18.04 LTS – Gen1
+	o Size: Standard B1ms– 1vCPU, 2GiB Memory
+	o Allowed public inbound ports: 22(SSH), 80(HTTP), 443(HTTPS)
+	o Public IP: VM-1-ip (13.68.130.186)
+	o Private IP: 10.0.0.6
 
-	Step 1: Update Software Repositories - update the local database of software to make sure you’ve got access to the latest revisions.
+• Now to configure the VM to host the web application. SSH into the VM and perform
+the following steps
+	o Install docker:
 
-	sudo apt-get update
+		sudo apt install docker.io
 
-
-	Step 2: Uninstall Old Versions of Docker
-	sudo apt-get remove docker docker-engine docker.io
-
-	Step 3: Install Docker on Ubuntu 18.04
-	sudo apt install docker.io
-
-	Step 4: Start and Automate Docker
-	 Docker service needs to be setup to run at startup. To do so, type in each command followed by enter:
-
-	sudo systemctl start docker
-	sudo systemctl enable docker
-
-	Step 5 (Optional): Check Docker Version
-	docker --version
-
-Installing a container with apache-php
-	$ docker run -tid \
-        -p 80:80 \
-        --name apache_server \
-        php:7-apache
-
-	-EDIT INDEX.php
-
-Installing a container with mongoDB
+	o Install container with apache-php:
 	
-	to download our image :
-	 we can obtain the MongoDB image from the Docker Hub container registry.
-	
-	docker pull mongo
-	docker pull mongo:4.0.4
+		docker run -tid -p 80:80 --name apache_server php:7-apache
 
-	Deploying an Instance of MongoDB as a Container
-	docker run -d -p 27017-27019:27017-27019 --name mongodb1 mongo:4.0.4
+	o Create the required .php files to run the web application after exec into docker container.
+	o Install MongoDB driver in apache_server container and other configurations:
 
-	Interacting with the MongoDB Docker Container with Basic Shell Operations
-	docker exec -it mongodb1 bash
+		pecl install mongodb
 
-	//To use use database
-	mongo
-	use ImageDB
-	add and retrieve
+• Create another Virtual Machine (VM-Mongo) by following the same steps as VM but
+replacing VM to VM-Mongo as required.
+	o Public IP: VM-Mongo-ip (20.55.40.30)
+	o Private IP: 10.0.0.4
+	o Allowed public inbound ports: 22(SSH), 27017(Port_MongoDocker)
 
-Installing MongoDB driver in PHP
+• Now to configure the VM-Mongo to host MongoDB. SSH into the VM and perform
+the following steps.
+	o Install docker:
 
-	pecl install mongodb
-	
-	add the following line to your php.ini file
-	extension=mongodb.so
+sudo apt install docker.io
 
-	preferred method of installing the PHP library is with Composer by running the following from your project root:
-	composer require mongodb/mongodb
+	o Install container with MongoDB:
+		docker run -it -v mongodata:/data/db -p 27017:27017 --name mongodb -d mongo
+	o Create new database (ImageDB) for storing the image metadata.
 
-	TO run prev statement
-	-install : wget , composer , git
+LOGIN/SSH DETAILS:
+• The web application is created with guest and admin login
+	o Use guest as username and password under GUEST USER.
+• The two VM’s created can be connected using SSH for verification.
+	o Use root as username and password as mentioned below
+		▪ ssh root@13.68.130.186
+		▪ To view docker container apache_server
 
-	To connect to mongoDB
-		<?php
+			docker exec -it apache_server bash
 
-	$manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+		▪ ssh root@20.55.40.30
+		▪ To view docker container mongodb
 
-	$bulk = new MongoDB\Driver\BulkWrite;
-	$bulk->insert(['x' => 1]);
-	$bulk->insert(['x' => 2]);
-	$bulk->insert(['x' => 3]);
-	$manager->executeBulkWrite('db.collection', $bulk);
-
-	$filter = ['x' => ['$gt' => 1]];
-	$options = [
-	    'projection' => ['_id' => 0],
-	    'sort' => ['x' => -1],
-	];
-
-	$query = new MongoDB\Driver\Query($filter, $options);
-	$cursor = $manager->executeQuery('db.collection', $query);
-
-	foreach ($cursor as $document) {
-	    var_dump($document);
-	}
-
-	?>
-
-SSH into both containers
-
--Mongo
-	Create ssh port on container(We deleted present container and did this)
-	docker run -it -v mongodata:/data/db -p 27017:27017 -p 23:22 --name mongodb -d mongo
-
-	TO install sshd
-	sudo apt-get
-
-	apt-get install openssh-server
-	
+			docker exec -it mongodb bash
+			
+NOTE:
+The configuration and IP details are just given for reference.
